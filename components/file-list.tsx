@@ -16,26 +16,62 @@ export function FileList({ files, xtlink, password }: FileListProps) {
   const [error, setError] = useState<string | null>(null)
   const [isCopyingAll, setIsCopyingAll] = useState(false)
 
+  // 创建一个通用的复制函数
+  const copyToClipboard = async (text: string): Promise<boolean> => {
+    // 方法1: 尝试使用现代 Clipboard API (HTTPS)
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return true
+      } catch (err) {
+        console.warn("Clipboard API 失败，尝试降级方案", err)
+      }
+    }
+
+    // 方法2: 降级到 document.execCommand (HTTP 兼容)
+    try {
+      const textArea = document.createElement("textarea")
+      textArea.value = text
+
+      // 使文本框不可见但仍然可以被选中
+      textArea.style.position = "fixed"
+      textArea.style.left = "-999999px"
+      textArea.style.top = "-999999px"
+      document.body.appendChild(textArea)
+
+      textArea.focus()
+      textArea.select()
+
+      const successful = document.execCommand('copy')
+      document.body.removeChild(textArea)
+
+      return successful
+    } catch (err) {
+      console.error("所有复制方法都失败了", err)
+      return false
+    }
+  }
+
+  // 在你的组件中使用
   const handleCopyLink = async (file: { key: string; name: string }) => {
     try {
       setError(null)
 
-      // 使用环境变量获取API URL
       const apiUrl = process.env.NEXT_PUBLIC_API_URL
       if (!apiUrl) {
         throw new Error("API URL 未配置，请检查环境变量")
       }
 
-      // 生成下载链接
       const linkUrl = generateDownloadLink(apiUrl, xtlink, file.key, password)
 
-      // 复制到剪贴板
-      await navigator.clipboard.writeText(linkUrl)
+      // 使用新的复制函数
+      const success = await copyToClipboard(linkUrl)
 
-      // 显示复制成功状态
+      if (!success) {
+        throw new Error("复制失败")
+      }
+
       setCopiedFile(file.key)
-
-      // 3秒后重置状态
       setTimeout(() => {
         setCopiedFile(null)
       }, 3000)
@@ -55,19 +91,17 @@ export function FileList({ files, xtlink, password }: FileListProps) {
         throw new Error("API URL 未配置，请检查环境变量")
       }
 
-      // 生成所有文件的下载链接
       const allLinks = generateMultipleDownloadLinks(apiUrl, xtlink, files, password)
-
-      // 格式化为易读的文本
       const linksText = allLinks.map((link) => `${link.name}: ${link.url}`).join("\n\n")
 
-      // 复制到剪贴板
-      await navigator.clipboard.writeText(linksText)
+      // 使用新的复制函数
+      const success = await copyToClipboard(linksText)
 
-      // 显示成功消息
+      if (!success) {
+        throw new Error("复制失败")
+      }
+
       setCopiedFile("all")
-
-      // 3秒后重置状态
       setTimeout(() => {
         setCopiedFile(null)
         setIsCopyingAll(false)
