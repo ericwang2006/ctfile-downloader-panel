@@ -1,4 +1,4 @@
-"use server"
+// "use server"
 
 // 获取环境变量
 const API_URL = process.env.NEXT_PUBLIC_API_URL
