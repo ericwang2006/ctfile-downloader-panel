@@ -21,7 +21,8 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!password.trim()) {
+    const cleanPassword = password.trim()
+    if (!cleanPassword) {
       setError("请输入密码")
       return
     }
@@ -30,15 +31,15 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
       setIsLoading(true)
       setError(null)
 
-      const isValid = await verifyPassword(password)
+      const isValid = await verifyPassword(cleanPassword)
 
       if (isValid) {
-        onLoginSuccess(password)
+        onLoginSuccess(cleanPassword)
       } else {
         setError("密码错误，请重试")
       }
-    } catch (err) {
-      setError("验证过程中出现错误，请重试")
+    } catch (err: any) {
+      setError(`无法连接到 API 服务 (${err.message || "网络连接错误"})，请检查 8787 端口或 NEXT_PUBLIC_API_URL 配置`)
       console.error("验证密码时出错:", err)
     } finally {
       setIsLoading(false)

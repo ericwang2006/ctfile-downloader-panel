@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { generateDownloadLink, generateMultipleDownloadLinks } from "@/lib/utils"
+import { getApiUrl } from "@/lib/api"
 import { Check, Copy } from "lucide-react"
 
 interface FileListProps {
@@ -57,10 +58,7 @@ export function FileList({ files, xtlink, password }: FileListProps) {
     try {
       setError(null)
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      if (!apiUrl) {
-        throw new Error("API URL 未配置，请检查环境变量")
-      }
+      const apiUrl = getApiUrl()
 
       const linkUrl = generateDownloadLink(apiUrl, xtlink, file.key, password)
 
@@ -86,10 +84,7 @@ export function FileList({ files, xtlink, password }: FileListProps) {
       setError(null)
       setIsCopyingAll(true)
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL
-      if (!apiUrl) {
-        throw new Error("API URL 未配置，请检查环境变量")
-      }
+      const apiUrl = getApiUrl()
 
       const allLinks = generateMultipleDownloadLinks(apiUrl, xtlink, files, password)
       const linksText = allLinks.map((link) => `${link.name}: ${link.url}`).join("\n\n")

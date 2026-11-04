@@ -44,8 +44,8 @@ export function LinkInput({ onSubmit, password }: LinkInputProps) {
       } else {
         setError("未找到文件或链接无效")
       }
-    } catch (err) {
-      setError("获取文件列表失败，请检查链接是否正确")
+    } catch (err: any) {
+      setError(`获取文件列表失败: ${err.message || '请检查链接是否正确'}`)
       console.error("获取文件列表时出错:", err)
     } finally {
       setIsLoading(false)
